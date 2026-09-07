@@ -1,325 +1,318 @@
-// SparkLink Technologies — "Blue Hour Glass" redesign.
-// One continuous midnight scene with liquid-glass functional layers:
-// fixed glass navigation, glass cards and forms, restrained motion, and
-// a telemetry panel rendered with the @bklit/area-chart component.
+// SparkLink Technologies — "Clean Signal" redesign.
+// Light, corporate layout in the spirit of modern IT-services templates:
+// info topbar + sticky frosted-glass header, a hero pairing copy with the
+// technician photo and three core service cards, a stats band, about split,
+// a services grid with gradient hover reveals, a telemetry panel rendered
+// with the @bklit/area-chart component, process steps, FAQ and CTA.
 // Motion honours prefers-reduced-motion via CSS.
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Activity,
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  ChevronDown,
-  Cloud,
-  Eye,
-  House,
-  Laptop,
-  Mail,
-  MapPin,
-  Menu,
-  MessageCircle,
-  Network,
-  Phone,
-  Router,
-  Satellite,
-  ShieldCheck,
-  Sparkles,
-  Timer,
-  Wifi,
-  X,
-  Zap,
+  Activity, ArrowRight, ArrowUpRight, ChevronDown, Clock, Eye, Facebook,
+  Instagram, Laptop, Linkedin, Mail, MapPin, Menu, MessageCircle, Network,
+  Phone, Router, Satellite, ShieldCheck, Sparkles, Timer, Twitter, Wifi, X, Zap,
 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AreaChart } from "@/components/ui/area-chart";
 
 const whatsappHref =
   "https://wa.me/263773791578?text=Hi%20SparkLink%20Technologies%2C%20I'm%20interested%20in%20getting%20a%20quote%20for%20your%20services.";
 const phoneHref = "tel:+263773791578";
+const phoneDisplay = "+263 77 379 1578";
+const emailHref = "mailto:nicodimusmlambo@gmail.com";
 
 const navItems = [
+  { label: "Home", href: "#top" },
   { label: "Services", href: "#services" },
-  { label: "Telemetry", href: "#telemetry" },
-  { label: "Process", href: "#process" },
   { label: "About", href: "#about" },
+  { label: "Process", href: "#process" },
+  { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
 ];
 
-const tickerItems = ["STARLINK", "CCTV", "FIBRE", "NETWORKING", "SMART HOMES", "WI-FI", "GPON / FTTH"];
-
-const heroStats: Array<[string, string]> = [
-  ["99.9%", "UPTIME TARGET"],
-  ["42ms", "AVG. RESPONSE"],
-  ["24/7", "SUPPORT LINE"],
+/* Three core offers surfaced as cards inside the hero. */
+const coreCards = [
+  { icon: Satellite, title: "Starlink Installation", text: "Expert mounting, alignment and setup for dependable satellite internet.", href: "#services" },
+  { icon: Eye, title: "CCTV & Security", text: "Surveillance systems planned for homes, offices and retail spaces.", href: "#services" },
+  { icon: Wifi, title: "Networking & Wi-Fi", text: "Dead-zone-free coverage and structured networking for every property.", href: "#services" },
 ];
 
+const stats = [
+  { icon: Activity, value: "99.9%", label: "Uptime target on every install" },
+  { icon: Timer, value: "42ms", label: "Typical latency, tuned systems" },
+  { icon: ShieldCheck, value: "5+ yrs", label: "Hands-on field experience" },
+  { icon: Phone, value: "24/7", label: "Support line for our clients" },
+];
 
-const systemChain = [
-  { label: "SATELLITE", icon: Satellite },
-  { label: "ROUTER", icon: Router },
-  { label: "NETWORK", icon: Network },
-  { label: "DEVICES", icon: Laptop },
-  { label: "SECURITY", icon: ShieldCheck },
-  { label: "SMART HOME", icon: Sparkles },
+const aboutPoints = [
+  { icon: ShieldCheck, title: "Certified workmanship", text: "Neat cabling, correct mounting and tested configurations on every job." },
+  { icon: Sparkles, title: "Smart-home ready", text: "Infrastructure installed today that scales with tomorrow's automation." },
 ];
 
 const services = [
-  { id: "01", name: "Starlink installation & support", description: "Professional mounting, positioning, routing, configuration, and optimisation for dependable satellite connectivity.", icon: Satellite, accent: "signal" },
-  { id: "02", name: "CCTV surveillance", description: "Camera systems planned for homes, offices, retail spaces, and commercial properties.", icon: Eye, accent: "bright" },
-  { id: "03", name: "Smart home automation", description: "Connect lighting, security, and smart devices into one convenient environment.", icon: Sparkles, accent: "cyan" },
-  { id: "04", name: "Wi-Fi coverage", description: "Eliminate dead zones and extend reliable Wi-Fi across homes, offices, and large properties.", icon: Wifi, accent: "signal" },
-  { id: "05", name: "Fibre internet", description: "Professional fibre cabling and internet infrastructure for fast, stable connectivity.", icon: Zap, accent: "bright" },
-  { id: "06", name: "GPON / FTTH", description: "Modern fibre-to-the-home and GPON infrastructure solutions.", icon: Network, accent: "cyan" },
-  { id: "07", name: "Network design", description: "Structured planning, installation, and configuration for homes and organisations.", icon: Router, accent: "signal" },
-  { id: "08", name: "ICT solutions", description: "Complete technology support and infrastructure tailored to each property.", icon: Laptop, accent: "bright" },
+  { name: "Starlink installation & support", description: "Professional mounting, positioning, routing and optimisation for dependable satellite connectivity.", icon: Satellite },
+  { name: "CCTV surveillance", description: "Camera systems planned for homes, offices, retail spaces and commercial properties.", icon: Eye },
+  { name: "Smart home automation", description: "Lighting, security and smart devices connected into one convenient environment.", icon: Sparkles },
+  { name: "Wi-Fi coverage", description: "Eliminate dead zones and extend reliable Wi-Fi across homes, offices and large properties.", icon: Wifi },
+  { name: "Fibre internet", description: "Professional fibre cabling and internet infrastructure for fast, stable connectivity.", icon: Zap },
+  { name: "GPON / FTTH", description: "Modern fibre-to-the-home and GPON infrastructure for estates and apartment blocks.", icon: Network },
+  { name: "Network design", description: "Structured planning, installation and configuration for homes and organisations.", icon: Router },
+  { name: "ICT solutions", description: "Complete technology support and infrastructure tailored to each property.", icon: Laptop },
 ];
 
-// Representative figures for a healthy SparkLink installation — used to
-// communicate the standard we install to, not live measurements.
-const telemetryStats = [
-  { value: "99.9%", label: "Uptime", note: "Representative first-week uptime after a professional install.", icon: Activity },
-  { value: "42ms", label: "Latency", note: "Typical satellite-to-router response on a tuned system.", icon: Timer },
-  { value: "3", label: "Coverage zones", note: "Internet, security, and automation mapped on one system.", icon: Cloud },
-];
-
+/* Representative figures for a healthy SparkLink installation — used to
+   communicate the standard we install to, not live measurements. */
 const chartData = [
-  { day: "Mon", uptime: 99.1 },
-  { day: "Tue", uptime: 99.4 },
-  { day: "Wed", uptime: 98.7 },
-  { day: "Thu", uptime: 99.8 },
-  { day: "Fri", uptime: 100 },
-  { day: "Sat", uptime: 99.6 },
-  { day: "Sun", uptime: 100 },
+  { day: "Mon", uptime: 99.6 },
+  { day: "Tue", uptime: 99.9 },
+  { day: "Wed", uptime: 99.8 },
+  { day: "Thu", uptime: 100 },
+  { day: "Fri", uptime: 99.9 },
+  { day: "Sat", uptime: 99.7 },
+  { day: "Sun", uptime: 99.9 },
 ];
-
-const starlinkSteps = [
-  ["01", "Site assessment"],
-  ["02", "Best mounting position"],
-  ["03", "Professional installation"],
-  ["04", "Cable routing"],
-  ["05", "Testing & handover"],
-];
-
-const cctvFeatures = ["Indoor & outdoor coverage", "Property monitoring", "Camera placement planning", "Remote viewing setup", "Professional cabling", "System configuration"];
-
 
 const processSteps = [
-  ["01", "Tell us what you need", "A quick conversation about the property, priorities, and the problem to solve."],
-  ["02", "Property / site assessment", "We look at layout, signal paths, mounting points, and the environment around them."],
-  ["03", "Recommended solution", "You receive a clear route forward, with the right combination of systems for the site."],
-  ["04", "Professional installation", "Our team installs, configures, and labels the infrastructure with care."],
-  ["05", "Testing & handover", "We test the system, walk you through it, and leave the next steps clear."],
+  { title: "Consultation", text: "We visit your site, discuss your needs and assess connectivity, power and mounting options." },
+  { title: "Design & quote", text: "You receive a clear proposal — equipment, timeline and pricing — with no hidden costs." },
+  { title: "Installation", text: "Certified technicians mount, route and configure everything neatly, safely and tested." },
+  { title: "Support", text: "After handover we stay reachable — monitoring advice, maintenance and upgrades." },
 ];
 
 const faqs = [
-  ["Do you install Starlink?", "Yes. SparkLink provides Starlink mounting, positioning, cable routing, router setup, and coverage optimisation. We are an independent installation and support provider, not Starlink itself."],
-  ["Can you improve Wi-Fi coverage in a large house?", "Yes. We can assess dead zones and design a practical multi-point Wi-Fi setup for the size and structure of your property."],
-  ["Do you install CCTV for businesses?", "Yes. We plan and install CCTV systems for homes, offices, retail spaces, and commercial properties, including cabling and system configuration."],
-  ["Can you design an office network?", "Yes. We design, install, and configure structured networks around the people, rooms, devices, and demands of your organisation."],
-  ["Do you install fibre networks?", "Yes. We provide fibre cabling, FTTH, and GPON infrastructure solutions where they are suitable for the property."],
-  ["Do you provide smart home installations?", "Yes. We connect compatible lighting, security, and smart devices into a more convenient, integrated environment."],
-  ["How do I request a quotation?", "Use the quote form below, call +263 77 379 1578, or send us a WhatsApp message with a short description of what you need."],
+  { q: "Do you install Starlink anywhere in Zimbabwe?", a: "Yes — we cover Harare and surrounding areas, and travel further for estate and commercial projects. Site assessments confirm the best mounting position before any hardware goes up." },
+  { q: "Can you fix Wi-Fi dead zones in a big house or office?", a: "Absolutely. We survey the property, then design a mesh or access-point layout so every room, patio and outbuilding gets a strong, stable signal." },
+  { q: "Do your CCTV systems allow phone viewing?", a: "Yes. Every system we install is configured for secure remote viewing on your phone or computer, with motion alerts and safe recording storage." },
+  { q: "How long does a typical installation take?", a: "Most residential Starlink or CCTV installs are completed in a single day. Larger networking, fibre or multi-building projects are scheduled with a clear timeline upfront." },
+  { q: "Do you offer support after installation?", a: "Yes — every installation includes after-sales support. If anything needs attention, our team is one call or WhatsApp message away." },
 ];
 
-const serviceOptions = ["Starlink", "CCTV", "Smart Home", "Wi-Fi", "Fibre", "GPON / FTTH", "Network Installation", "Other"];
-
-/* ---------- shared primitives ---------- */
-
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-  const [visible, setVisible] = useState(false);
-
+/* ---------- hooks & helpers ---------- */
+function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new IntersectionObserver(
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
+          el.classList.add("reveal-visible");
+          io.disconnect();
         }
       },
       { threshold: 0.12 },
     );
-    observer.observe(element);
-    return () => observer.disconnect();
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
-
-  return { ref, visible };
-}
-
-function Reveal({ children, className = "", delay = 0, style }: { children: React.ReactNode; className?: string; delay?: number; style?: React.CSSProperties }) {
-  const { ref, visible } = useReveal<HTMLDivElement>();
   return (
-    <div ref={ref} className={`reveal ${visible ? "reveal-visible" : ""} ${className}`} style={{ transitionDelay: `${delay}ms`, ...style }}>
+    <div ref={ref} className={`reveal ${className}`} style={delay ? { transitionDelay: `${delay}ms` } : undefined}>
       {children}
     </div>
   );
 }
 
-function Wordmark() {
+function Wordmark({ light = false }: { light?: boolean }) {
   return (
-    <a className="wordmark" href="#top" aria-label="SparkLink Technologies home">
-      <svg className="wordmark-mark" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <path d="M4 17V9a1 1 0 0 1 1-1h7" stroke="#3EA6FF" strokeWidth="2" strokeLinecap="round" />
-        <path d="M24 11v8a1 1 0 0 1-1 1h-7" stroke="#3EA6FF" strokeWidth="2" strokeLinecap="round" />
-        <path d="M8 20L20 8" stroke="url(#spark-link-grad)" strokeWidth="2.4" strokeLinecap="round" />
-        <defs>
-          <linearGradient id="spark-link-grad" x1="8" y1="20" x2="20" y2="8">
-            <stop stopColor="#146CFF" />
-            <stop offset="1" stopColor="#5FD0FF" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <span>
-        <strong>SparkLink</strong>
-        <small>Technologies</small>
+    <a href="#top" className="wordmark" aria-label="SparkLink Technologies home">
+      <span className="wordmark-badge" aria-hidden="true">
+        <Satellite size={16} strokeWidth={2.2} />
+      </span>
+      <span className="wordmark-text" style={light ? { color: "#fff" } : undefined}>
+        Spark<span>Link</span>
       </span>
     </a>
   );
 }
 
-
-/* ---------- header ---------- */
-function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
+/* ---------- topbar & header ---------- */
+function Topbar() {
   return (
-    <header className={`site-header ${scrolled ? "scrolled" : ""}`}>
-      <div className="nav-shell">
-        <div className="nav-pill glass-pill">
+    <div className="topbar">
+      <div className="container topbar-inner">
+        <div className="topbar-group">
+          <span className="topbar-item">
+            <MapPin size={13} /> Harare, Zimbabwe
+          </span>
+          <a className="topbar-item" href={emailHref}>
+            <Mail size={13} /> nicodimusmlambo@gmail.com
+          </a>
+          <span className="topbar-item">
+            <Clock size={13} /> Mon – Sat: 8:00 AM – 6:00 PM
+          </span>
+        </div>
+        <div className="topbar-socials">
+          <a href="#top" aria-label="Facebook"><Facebook size={14} /></a>
+          <a href="#top" aria-label="Twitter"><Twitter size={14} /></a>
+          <a href="#top" aria-label="LinkedIn"><Linkedin size={14} /></a>
+          <a href="#top" aria-label="Instagram"><Instagram size={14} /></a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
+  return (
+    <header className="site-header">
+      <div className="glass header-shell">
+        <div className="container header-bar">
           <Wordmark />
-          <nav className="main-nav" aria-label="Main navigation">
+          <nav className="main-nav" aria-label="Primary">
             {navItems.map((item) => (
-              <a key={item.href} href={item.href}>
-                {item.label}
-              </a>
+              <a key={item.href} href={item.href}>{item.label}</a>
             ))}
-            <a className="btn btn-primary btn-sm header-cta" href="#contact">
+          </nav>
+          <div className="header-cta">
+            <a href={phoneHref} className="header-call">
+              <span className="call-icon"><Phone size={16} /></span>
+              <span>
+                <small>Call us today</small>
+                <strong>{phoneDisplay}</strong>
+              </span>
+            </a>
+            <a href="#contact" className="btn btn-primary header-btn">
               Get a quote <ArrowUpRight size={16} />
             </a>
+            <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label="Toggle menu">
+              {menuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
+        </div>
+        {menuOpen && (
+          <nav className="mobile-nav container" aria-label="Mobile">
+            {navItems.map((item) => (
+              <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>
+            ))}
+            <a href={phoneHref} onClick={() => setMenuOpen(false)}>Call {phoneDisplay}</a>
           </nav>
-          <button
-            className="menu-btn"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-        <div className={`mobile-sheet glass-panel ${menuOpen ? "open" : ""}`}>
-          {navItems.map((item) => (
-            <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
-              {item.label}
-            </a>
-          ))}
-          <a className="btn btn-primary header-cta" href="#contact" onClick={() => setMenuOpen(false)}>
-            Get a quote <ArrowUpRight size={17} />
-          </a>
-        </div>
+        )}
       </div>
     </header>
   );
 }
 
 /* ---------- hero ---------- */
-function HeroConsole() {
+function Hero() {
   return (
-    <div className="hero-console glass-panel" aria-label="Illustration of a monitored SparkLink network">
-      <div className="console-top mono">
-        <span className="status-dot" /> SPARKLINK GRID / ONLINE <span className="console-loc">HARARE · ZW</span>
-      </div>
-      <div className="console-stage" aria-hidden="true">
-        <span className="orbit orbit-a" />
-        <span className="orbit orbit-b" />
-        <span className="orbit orbit-c" />
-        <span className="orbit-sat" />
-        <span className="console-core">
-          <Router size={22} strokeWidth={1.5} />
-        </span>
-        <span className="console-tag tag-a mono">STARLINK</span>
-        <span className="console-tag tag-b mono">FIBRE</span>
-        <span className="console-tag tag-c mono">CCTV</span>
-      </div>
-      <div className="console-stats">
-        {heroStats.map(([value, label]) => (
-          <div key={label}>
-            <strong>{value}</strong>
-            <span className="mono">{label}</span>
+    <section className="hero" aria-labelledby="hero-title">
+      <div className="hero-content container">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="eyebrow-rule" /> Optimize your connectivity
+          </p>
+          <h1 id="hero-title">
+            Reliable <em>ICT &amp; internet</em> solutions
+          </h1>
+          <p className="hero-description">
+            SparkLink Technologies installs and supports Starlink, CCTV, networking and smart
+            technology for homes and businesses across Zimbabwe — engineered neatly, configured
+            properly, supported consistently.
+          </p>
+          <div className="hero-actions">
+            <a href="#contact" className="btn btn-primary">
+              Start now <ArrowUpRight size={17} />
+            </a>
+            <a href="#services" className="btn btn-outline">
+              Explore services <ArrowRight size={17} />
+            </a>
           </div>
-        ))}
+        </div>
+        <div className="hero-figure">
+          <div className="hero-glow" aria-hidden="true" />
+          <img src="/woman.png" alt="SparkLink technician holding a tablet during a site assessment" fetchPriority="high" />
+        </div>
       </div>
-    </div>
+
+      <div className="hero-cards container">
+        <div className="hero-cards-grid">
+          {coreCards.map((card, i) => (
+            <Reveal key={card.title} delay={i * 90}>
+              <a href={card.href} className="hero-card">
+                <span className="hero-card-icon">
+                  <card.icon size={22} strokeWidth={1.9} />
+                </span>
+                <span>
+                  <h3>{card.title}</h3>
+                  <p>{card.text}</p>
+                </span>
+                <span className="card-link" aria-hidden="true">
+                  <ArrowUpRight size={15} />
+                </span>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
-
-/* ---------- ticker ---------- */
-function Ticker() {
+/* ---------- stats band ---------- */
+function StatsBand() {
   return (
-    <div className="ticker" aria-label="SparkLink service areas">
-      <div className="ticker-track">
-        {[0, 1].map((group) => (
-          <div className="ticker-group" key={group} aria-hidden={group === 1}>
-            {tickerItems.map((item, index) => (
-              <span key={`${group}-${item}`}>
-                <i>{String(index + 1).padStart(2, "0")}</i>
-                {item}
+    <section className="stats-band" aria-label="Company statistics">
+      <div className="container stats-grid">
+        {stats.map((stat, i) => (
+          <Reveal key={stat.label} delay={i * 80}>
+            <div className="stat">
+              <span className="stat-icon"><stat.icon size={19} strokeWidth={1.9} /></span>
+              <span>
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
               </span>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---------- about ---------- */
+function About() {
+  return (
+    <section className="section" id="about">
+      <div className="container about-grid">
+        <Reveal className="about-collage">
+          <img className="about-img-main" src="/service-starlink.jpg" alt="Technician aligning a Starlink dish on a rooftop" loading="lazy" />
+          <img className="about-img-back" src="/service-network.jpg" alt="Networking equipment — router, NAS and switch — laid out before an install" loading="lazy" />
+          <div className="about-badge">
+            <span className="big">5+</span>
+            <small>
+              Years of
+              <br />
+              field experience
+            </small>
+          </div>
+        </Reveal>
+        <Reveal className="about-copy" delay={120}>
+          <p className="eyebrow">
+            <span className="eyebrow-rule" /> About SparkLink
+          </p>
+          <h2>We help homes and businesses stay connected, secured and smart</h2>
+          <p>
+            From Starlink installations to full networking and surveillance builds, we handle the
+            technology so you never think about it. Every cable routed, every device configured,
+            every system handed over tested and ready.
+          </p>
+          <div className="about-points">
+            {aboutPoints.map((point) => (
+              <div className="about-point" key={point.title}>
+                <span className="about-point-icon"><point.icon size={18} strokeWidth={1.9} /></span>
+                <div>
+                  <h4>{point.title}</h4>
+                  <p>{point.text}</p>
+                </div>
+              </div>
             ))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- solutions ---------- */
-function Solutions() {
-  return (
-    <section id="solutions" className="section">
-      <div className="aurora aurora-b" aria-hidden="true" />
-      <div className="container solutions-grid">
-        <Reveal className="solutions-copy">
-          <p className="eyebrow"><span className="eyebrow-rule" /> ONE TECHNOLOGY PARTNER</p>
-          <h2 className="split-head">
-            From the satellite above your roof to the <em>network behind your walls.</em>
-          </h2>
-          <p className="body-copy">
-            SparkLink brings connectivity, security, networking, and automation into one coherent
-            system, designed around the property you actually have.
-          </p>
-          <a href="#contact" className="text-link" style={{ marginTop: "1.6rem" }}>
-            Talk to a technical partner <ArrowRight size={16} />
-          </a>
-        </Reveal>
-        <Reveal delay={120}>
-          <div className="system-map glass-panel">
-            <div className="system-map-head mono">
-              <span>SIGNAL CHAIN</span>
-              <span className="status-dot" />
-            </div>
-            <div className="system-chain">
-              <span className="chain-line" aria-hidden="true" />
-              {systemChain.map((node, index) => {
-                const Icon = node.icon;
-                return (
-                  <div className="chain-node" key={node.label} style={{ transitionDelay: `${index * 60}ms` }}>
-                    <span className="chain-dot" />
-                    <span className="mono chain-index">0{index + 1}</span>
-                    <strong>{node.label}</strong>
-                    <Icon size={16} strokeWidth={1.6} />
-                  </div>
-                );
-              })}
-            </div>
+          <div className="hero-actions">
+            <a href="#contact" className="btn btn-primary">
+              Talk to us <ArrowUpRight size={16} />
+            </a>
+            <a href={phoneHref} className="btn btn-outline">
+              <Phone size={15} /> {phoneDisplay}
+            </a>
           </div>
         </Reveal>
       </div>
@@ -329,183 +322,101 @@ function Solutions() {
 
 /* ---------- services ---------- */
 function Services() {
+  const firstSix = services.slice(0, 6);
+  const lastTwo = services.slice(6);
   return (
-    <section id="services" className="section">
+    <section className="section section-mist" id="services">
       <div className="container">
-        <Reveal className="section-head">
-          <p className="eyebrow"><span className="eyebrow-rule" /> THE SPARKLINK SYSTEM</p>
-          <h2>Everything your property needs to stay <em>connected.</em></h2>
-          <p className="body-copy" style={{ marginTop: "1.2rem" }}>
-            One team to map the signal, secure the site, and make the whole system work together.
-          </p>
+        <Reveal>
+          <div className="section-head center">
+            <p className="eyebrow" style={{ justifyContent: "center" }}>
+              <span className="eyebrow-rule" /> Our services <span className="eyebrow-rule" />
+            </p>
+            <h2>Quality connectivity services you can trust</h2>
+            <p>
+              Professional installation and support for satellite internet, security, networking
+              and smart technology — for homes, offices and commercial properties.
+            </p>
+          </div>
         </Reveal>
         <div className="services-grid">
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            return (
-              <Reveal
-                key={service.id}
-                className={`service-card glass-card accent-${service.accent} ${index < 2 ? "service-feature" : ""}`}
-                delay={(index % 4) * 50}
-              >
-                <div className="service-top">
-                  <span className="mono">{service.id}</span>
-                  <span className="service-icon">
-                    <Icon size={index < 2 ? 22 : 19} strokeWidth={1.5} />
-                  </span>
-                </div>
+          {firstSix.map((service, i) => (
+            <Reveal key={service.name} delay={(i % 3) * 90}>
+              <article className="service-card">
+                <span className="service-icon"><service.icon size={22} strokeWidth={1.8} /></span>
                 <h3>{service.name}</h3>
                 <p>{service.description}</p>
                 <a href="#contact" className="service-link">
-                  Request a quote <ArrowUpRight size={15} />
+                  Get started <ArrowUpRight size={14} />
                 </a>
-                {service.id === "01" && <span className="service-decor decor-orbit" aria-hidden="true" />}
-                {service.id === "02" && <span className="service-decor decor-reticle" aria-hidden="true" />}
-              </Reveal>
-            );
-          })}
+              </article>
+            </Reveal>
+          ))}
+          {lastTwo.map((service) => (
+            <article className="service-card" key={service.name}>
+              <span className="service-icon"><service.icon size={22} strokeWidth={1.8} /></span>
+              <h3>{service.name}</h3>
+              <p>{service.description}</p>
+              <a href="#contact" className="service-link">
+                Get started <ArrowUpRight size={14} />
+              </a>
+            </article>
+          ))}
+          <article className="service-card feature">
+            <div className="feature-copy">
+              <span className="service-icon"><Laptop size={22} strokeWidth={1.8} /></span>
+              <h3>Complete ICT solutions for your property</h3>
+              <p>
+                One team for connectivity, security and automation. We plan the infrastructure,
+                install the hardware and stay on for support — so your technology simply works.
+              </p>
+              <a href="#contact" className="service-link">
+                Request a site visit <ArrowUpRight size={14} />
+              </a>
+            </div>
+            <div className="feature-media">
+              <img src="/service-ict.jpg" alt="ICT infrastructure work in progress" loading="lazy" />
+            </div>
+          </article>
         </div>
       </div>
     </section>
   );
 }
-
 
 /* ---------- telemetry ---------- */
 function Telemetry() {
   return (
-    <section id="telemetry" className="section">
-      <div className="aurora aurora-a" style={{ top: "10%", right: "-140px" }} aria-hidden="true" />
-      <div className="container">
-        <Reveal className="section-head">
-          <p className="eyebrow"><span className="eyebrow-rule" /> INSTALLED TO A STANDARD</p>
-          <h2>The standard we install to, <em>measured.</em></h2>
-          <p className="body-copy" style={{ marginTop: "1.2rem" }}>
-            A SparkLink system is not finished at handover — it is tuned, tested, and documented.
-            These are the representative numbers a healthy installation runs at.
+    <section className="section" id="telemetry">
+      <div className="container telemetry-grid">
+        <Reveal>
+          <p className="eyebrow">
+            <span className="eyebrow-rule" /> The standard we install to
+          </p>
+          <h2 style={{ fontSize: "clamp(1.9rem, 4vw, 2.6rem)", lineHeight: 1.12, marginBottom: "1.1rem" }}>
+            Engineered for uptime, tuned for speed
+          </h2>
+          <p style={{ color: "var(--slate)", lineHeight: 1.75, margin: 0 }}>
+            A SparkLink installation is measured, not guessed. We align, mount and configure for a
+            stable link, then verify real-world performance before handover.
+          </p>
+          <p className="telemetry-note">
+            <ShieldCheck size={15} />
+            Representative first-week figures for a healthy, professionally installed system —
+            your results depend on location, weather and equipment.
           </p>
         </Reveal>
-        <div className="telemetry-grid">
-          <div className="telemetry-stats">
-            {telemetryStats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <Reveal key={stat.label} delay={index * 70} style={{ display: "flex", flex: 1 }}>
-                  <div className="stat-card glass-card">
-                    <div className="stat-value">
-                      <span className="stat-icon"><Icon size={17} strokeWidth={1.7} /></span>
-                      <strong>{stat.value}</strong>
-                    </div>
-                    <span className="mono">{stat.label}</span>
-                    <p>{stat.note}</p>
-                  </div>
-                </Reveal>
-              );
-            })}
-          </div>
-          <Reveal delay={140} style={{ display: "flex" }}>
-            <div className="chart-panel glass-panel">
-              <div className="chart-head">
-                <div>
-                  <h3>Network uptime</h3>
-                  <span className="mono">REPRESENTATIVE / FIRST WEEK</span>
-                </div>
-                <span className="chart-legend"><i /> Daily uptime %</span>
-              </div>
-              <AreaChart data={chartData} dataKey="uptime" xKey="day" color="#3EA6FF" height={280} />
-            </div>
-          </Reveal>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------- feature duo (Starlink / CCTV) ---------- */
-function Features() {
-  return (
-    <section className="section" aria-label="Featured services">
-      <div className="container feature-duo">
-        <Reveal>
-          <article className="feature-card glass-panel">
-            <div className="feature-icon"><Satellite size={22} strokeWidth={1.5} /></div>
-            <p className="eyebrow mono">SATELLITE CONNECTIVITY</p>
-            <h3>Get more from your Starlink.</h3>
-            <p className="feature-copy">
-              Installation quality affects positioning, cable routing, stability, Wi-Fi
-              distribution, and the overall quality of the setup. SparkLink makes the route from
-              dish to device work harder.
-            </p>
-            <ul className="step-list">
-              {starlinkSteps.map(([number, label]) => (
-                <li key={number}>
-                  <span className="mono">{number}</span>
-                  {label}
-                </li>
-              ))}
-            </ul>
-            <a href="#contact" className="btn btn-glass">
-              Book a Starlink installation <ArrowUpRight size={17} />
-            </a>
-          </article>
-        </Reveal>
         <Reveal delay={120}>
-          <article className="feature-card glass-panel">
-            <div className="feature-icon"><ShieldCheck size={22} strokeWidth={1.5} /></div>
-            <p className="eyebrow mono">SECURITY / SURVEILLANCE</p>
-            <h3>See everything that matters.</h3>
-            <p className="feature-copy">
-              We plan CCTV installations for residential and commercial environments, with camera
-              placement, cabling, and system configuration designed around your site.
-            </p>
-            <div className="feature-chips">
-              {cctvFeatures.map((item) => (
-                <span key={item}>
-                  <Check size={13} />
-                  {item}
-                </span>
-              ))}
+          <div className="chart-panel">
+            <div className="chart-head">
+              <h3>Weekly uptime — healthy install</h3>
+              <span className="chart-badge">
+                <span className="status-dot" aria-hidden="true" /> Stable link
+              </span>
             </div>
-            <a href="#contact" className="text-link">
-              Plan your security system <ArrowRight size={16} />
-            </a>
-          </article>
+            <AreaChart data={chartData} dataKey="uptime" xKey="day" color="#9ec2ff" height={260} />
+          </div>
         </Reveal>
-      </div>
-    </section>
-  );
-}
-
-
-/* ---------- about / why ---------- */
-function About() {
-  const items = [
-    ["Professional installation", "Thoughtful mounting, cabling, configuration, and handover."],
-    ["Solutions built around your property", "We start with the site, not a one-size-fits-all package."],
-    ["Residential & commercial expertise", "Clear technical thinking for the spaces people live and work in."],
-    ["Support after installation", "A system is only complete when you know how to use it."],
-  ];
-  return (
-    <section id="about" className="section">
-      <div className="container">
-        <Reveal className="section-head">
-          <p className="eyebrow"><span className="eyebrow-rule" /> WHY SPARKLINK</p>
-          <h2>Technology is only useful when it works <em>reliably.</em></h2>
-        </Reveal>
-        <div className="why-list">
-          {items.map(([title, copy], index) => (
-            <Reveal key={title} delay={index * 60}>
-              <div className="why-card glass-card">
-                <span className="why-index">
-                  <Check size={16} />
-                  <span className="mono">0{index + 1}</span>
-                </span>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -514,24 +425,25 @@ function About() {
 /* ---------- process ---------- */
 function Process() {
   return (
-    <section id="process" className="section">
-      <div className="aurora aurora-b" style={{ left: "-140px", top: "20%" }} aria-hidden="true" />
-      <div className="container process-grid">
-        <Reveal className="process-head">
-          <p className="eyebrow"><span className="eyebrow-rule" /> A CLEARER ROUTE</p>
-          <h2>From enquiry to <em>installation.</em></h2>
-          <p className="body-copy" style={{ marginTop: "1.2rem" }}>
-            No black box. You always know what happens next.
-          </p>
+    <section className="section section-mist" id="process">
+      <div className="container">
+        <Reveal>
+          <div className="section-head center">
+            <p className="eyebrow" style={{ justifyContent: "center" }}>
+              <span className="eyebrow-rule" /> Process <span className="eyebrow-rule" />
+            </p>
+            <h2>How we work</h2>
+            <p>A simple, transparent path from first contact to a fully supported installation.</p>
+          </div>
         </Reveal>
-        <div className="process-list">
-          {processSteps.map(([number, title, copy], index) => (
-            <Reveal key={number} delay={index * 70}>
-              <div className="process-step glass-card">
-                <span className="step-number mono">{number}</span>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </div>
+        <div className="process-grid">
+          {processSteps.map((step, i) => (
+            <Reveal key={step.title} delay={i * 90}>
+              <article className="process-card">
+                <span className="process-step">{String(i + 1).padStart(2, "0")}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
             </Reveal>
           ))}
         </div>
@@ -541,187 +453,72 @@ function Process() {
 }
 
 /* ---------- faq ---------- */
-function Faq({ openFaq, setOpenFaq }: { openFaq: number | null; setOpenFaq: (value: number | null) => void }) {
+function Faq({ openFaq, setOpenFaq }: { openFaq: number | null; setOpenFaq: (v: number | null) => void }) {
   return (
-    <section id="faq" className="section">
+    <section className="section" id="faq">
       <div className="container faq-grid">
-        <Reveal className="faq-head">
-          <p className="eyebrow"><span className="eyebrow-rule" /> QUESTIONS, ANSWERED</p>
-          <h2>Start with what you need to <em>know.</em></h2>
-          <p className="body-copy" style={{ marginTop: "1.2rem" }}>
-            Still unsure where to start? Send a WhatsApp message and describe the property in your
-            own words.
+        <Reveal>
+          <p className="eyebrow">
+            <span className="eyebrow-rule" /> FAQ
           </p>
-          <a href={whatsappHref} target="_blank" rel="noreferrer" className="text-link" style={{ marginTop: "1.4rem" }}>
-            Message SparkLink <MessageCircle size={16} />
-          </a>
+          <h2 style={{ fontSize: "clamp(1.9rem, 4vw, 2.6rem)", lineHeight: 1.12, marginBottom: "1.1rem" }}>
+            Questions, answered
+          </h2>
+          <p style={{ color: "var(--slate)", lineHeight: 1.75, margin: 0 }}>
+            Can't find what you're looking for? Message us on WhatsApp — we reply fast.
+          </p>
         </Reveal>
-        <div className="faq-list">
-          {faqs.map(([question, answer], index) => (
-            <Reveal key={question} delay={index * 35}>
-              <div className={`faq-item glass-card ${openFaq === index ? "faq-open" : ""}`}>
-                <button onClick={() => setOpenFaq(openFaq === index ? null : index)} aria-expanded={openFaq === index}>
-                  <span>{question}</span>
-                  <ChevronDown size={18} />
+        <Reveal delay={120} className="faq-list">
+          {faqs.map((faq, i) => {
+            const open = openFaq === i;
+            return (
+              <div className={`faq-item${open ? " open" : ""}`} key={faq.q}>
+                <button className="faq-question" onClick={() => setOpenFaq(open ? null : i)} aria-expanded={open}>
+                  {faq.q}
+                  <ChevronDown size={17} />
                 </button>
-                <div className="faq-answer">
-                  <div className="faq-answer-inner">
-                    <p>{answer}</p>
-                  </div>
-                </div>
+                {open && <p className="faq-answer">{faq.a}</p>}
               </div>
-            </Reveal>
-          ))}
-        </div>
+            );
+          })}
+        </Reveal>
       </div>
     </section>
   );
 }
 
-
-/* ---------- final cta ---------- */
+/* ---------- final CTA / contact ---------- */
 function FinalCta() {
   return (
-    <section className="final-cta">
+    <section className="section" id="contact" style={{ paddingTop: 0 }}>
       <div className="container">
         <Reveal>
-          <p className="eyebrow"><span className="eyebrow-rule" /> READY TO UPGRADE YOUR CONNECTION?</p>
-          <h2>
-            Let’s build a better
-            <br />
-            <em>connected property.</em>
-          </h2>
-          <p className="cta-copy">
-            Tell us what you need and we’ll recommend a solution for your home, office, or
-            commercial property.
-          </p>
-          <div className="final-actions">
-            <a href={whatsappHref} target="_blank" rel="noreferrer" className="btn btn-primary">
-              <MessageCircle size={17} /> WhatsApp SparkLink
-            </a>
-            <a href={phoneHref} className="btn btn-glass">
-              <Phone size={17} /> Call us
-            </a>
-            <a href="#contact" className="btn btn-ghost">
-              Request a quote <ArrowUpRight size={17} />
-            </a>
+          <div className="final-cta">
+            <p className="eyebrow" style={{ justifyContent: "center", color: "#9ec2ff" }}>
+              Get connected
+            </p>
+            <h2>Ready for reliable internet, security and smart tech?</h2>
+            <p>
+              Tell us about your home or business and we'll recommend the right setup — with a
+              clear quote and a timeline you can plan around.
+            </p>
+            <div className="final-actions">
+              <a href={whatsappHref} target="_blank" rel="noreferrer" className="btn btn-light">
+                <MessageCircle size={16} /> WhatsApp us
+              </a>
+              <a href={phoneHref} className="btn btn-ghost">
+                <Phone size={16} /> {phoneDisplay}
+              </a>
+              <a href={emailHref} className="btn btn-ghost">
+                <Mail size={16} /> Email us
+              </a>
+            </div>
           </div>
         </Reveal>
       </div>
     </section>
   );
 }
-
-/* ---------- contact ---------- */
-function Contact() {
-  const [formSent, setFormSent] = useState(false);
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setFormSent(true);
-  };
-
-  return (
-    <section id="contact" className="section">
-      <div className="container contact-grid">
-        <Reveal className="contact-intro">
-          <p className="eyebrow"><span className="eyebrow-rule" /> CONTACT SPARKLINK</p>
-          <h2>Tell us what the property needs.</h2>
-          <p className="body-copy" style={{ marginTop: "1.2rem" }}>
-            A short brief is enough to start. We’ll come back with the right next step.
-          </p>
-          <div className="contact-details">
-            <a href={phoneHref}>
-              <Phone size={17} />
-              <span>
-                <small className="mono">PHONE / WHATSAPP</small>
-                +263 77 379 1578
-              </span>
-            </a>
-            <a href="mailto:nicodimusmlambo@gmail.com">
-              <Mail size={17} />
-              <span>
-                <small className="mono">EMAIL</small>
-                nicodimusmlambo@gmail.com
-              </span>
-            </a>
-            <div>
-              <MapPin size={17} />
-              <span>
-                <small className="mono">LOCATION</small>
-                Jason Moyo Avenue, Harare
-              </span>
-            </div>
-          </div>
-        </Reveal>
-        <Reveal className="quote-form-wrap" delay={120}>
-          {formSent ? (
-            <div className="form-success glass-panel">
-              <div className="success-icon"><Check size={24} /></div>
-              <p className="eyebrow mono">MESSAGE READY</p>
-              <h3>Thanks for reaching out.</h3>
-              <p>
-                We’ve captured your request in this demo experience. For a live quotation, message
-                SparkLink directly on WhatsApp or call the number below.
-              </p>
-              <div className="form-success-actions">
-                <a href={whatsappHref} target="_blank" rel="noreferrer" className="btn btn-primary">
-                  Open WhatsApp <ArrowUpRight size={17} />
-                </a>
-                <a href={phoneHref} className="text-link">
-                  Call +263 77 379 1578 <ArrowRight size={16} />
-                </a>
-              </div>
-            </div>
-          ) : (
-            <form className="quote-form glass-panel" onSubmit={handleSubmit}>
-              <div className="form-heading">
-                <span className="mono">QUOTE REQUEST / 001</span>
-                <span className="status-dot" />
-              </div>
-              <div className="form-row">
-                <label>
-                  Name
-                  <input required name="name" autoComplete="name" />
-                </label>
-                <label>
-                  Phone
-                  <input required name="phone" type="tel" autoComplete="tel" />
-                </label>
-              </div>
-              <div className="form-row">
-                <label>
-                  Email
-                  <input name="email" type="email" autoComplete="email" />
-                </label>
-                <label>
-                  Service interested in
-                  <select name="service" defaultValue="">
-                    <option value="" disabled>
-                      Select a service
-                    </option>
-                    {serviceOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <label>
-                Message
-                <textarea name="message" placeholder="Tell us about the property and what you need." />
-              </label>
-              <button type="submit" className="btn btn-primary">
-                Send request <ArrowUpRight size={17} />
-              </button>
-            </form>
-          )}
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
 
 /* ---------- footer ---------- */
 function Footer() {
@@ -729,26 +526,26 @@ function Footer() {
     <footer className="site-footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          <Wordmark />
-          <p>ICT · Connectivity · Security · Automation</p>
+          <Wordmark light />
+          <p>ICT · Connectivity · Security · Automation — proudly serving homes and businesses across Zimbabwe.</p>
         </div>
         <div className="footer-col">
-          <span className="mono">EXPLORE</span>
+          <span className="mono">Explore</span>
           <a href="#services">Services</a>
-          <a href="#telemetry">Telemetry</a>
+          <a href="#about">About</a>
           <a href="#process">Process</a>
           <a href="#faq">FAQ</a>
         </div>
         <div className="footer-col">
-          <span className="mono">CONTACT</span>
-          <a href={phoneHref}>+263 77 379 1578</a>
-          <a href="mailto:nicodimusmlambo@gmail.com">Email SparkLink</a>
+          <span className="mono">Contact</span>
+          <a href={phoneHref}>{phoneDisplay}</a>
+          <a href={emailHref}>nicodimusmlambo@gmail.com</a>
           <span>Harare, Zimbabwe</span>
         </div>
       </div>
       <div className="container footer-bottom">
-        <span>© 2026 SparkLink Technologies</span>
-        <span className="mono">CONNECTED / SECURED / BUILT FOR SPEED</span>
+        <span>© {new Date().getFullYear()} SparkLink Technologies</span>
+        <span className="mono">Connected / Secured / Built for speed</span>
       </div>
     </footer>
   );
@@ -758,71 +555,28 @@ function Footer() {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const sectionIds = useMemo(() => navItems.map((item) => item.href), []);
 
   return (
-    <div id="top" className="site-shell">
+    <div id="top">
+      <Topbar />
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main>
-        <section className="hero" aria-labelledby="hero-title">
-          <div className="hero-bg" aria-hidden="true" />
-          <div className="hero-grid-lines" aria-hidden="true" />
-          <div className="aurora aurora-a" aria-hidden="true" />
-          <div className="aurora aurora-b" aria-hidden="true" />
-          <div className="hero-content container">
-            <div className="hero-copy">
-              <p className="eyebrow"><span className="eyebrow-rule" /> ICT · CONNECTIVITY · SECURITY</p>
-              <h1 id="hero-title">
-                Connected.
-                <em>Secured.</em>
-                Built for speed.
-              </h1>
-              <p className="hero-description">
-                Professional connectivity, networking, surveillance, and smart technology solutions
-                for homes and businesses across Zimbabwe.
-              </p>
-              <div className="hero-actions">
-                <a href="#contact" className="btn btn-primary">
-                  Get a free quote <ArrowUpRight size={17} />
-                </a>
-                <a href="#services" className="btn btn-glass">
-                  Explore services <ArrowRight size={17} />
-                </a>
-              </div>
-              <p className="hero-trust mono">
-                HARARE <i /> RESIDENTIAL <i /> COMMERCIAL
-              </p>
-            </div>
-            <HeroConsole />
-          </div>
-        </section>
-
-        <Ticker />
-        <Solutions />
+        <Hero />
+        <StatsBand />
+        <About />
         <Services />
         <Telemetry />
-        <Features />
-        <About />
         <Process />
         <Faq openFaq={openFaq} setOpenFaq={setOpenFaq} />
         <FinalCta />
-        <Contact />
       </main>
-
       <Footer />
-
       <a className="float-wa" href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Chat with SparkLink on WhatsApp">
         <MessageCircle size={21} />
       </a>
-      {/* sectionIds kept for potential scroll-spy navigation */}
-      <span hidden data-sections={sectionIds.join(",")} />
     </div>
   );
 }
-
-
-
-
 
 
 
