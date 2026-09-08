@@ -28,7 +28,7 @@ const projects = [
 ];
 
 const gallery = [
-  { image: "/Starlink Mini V5 + Indoor WiFi Coverage Acess Point.jpeg", title: "Starlink Mini plus indoor Wi-Fi" },
+  { image: "/starlink-mini-indoor-wifi-access-point.jpeg", title: "Starlink Mini plus indoor Wi-Fi" },
   { image: "/Starlink Gen3 V4.jpeg", title: "Starlink Gen 3 kit" },
   { image: "/CCTV Footages for IP Systems 2.jpeg", title: "IP CCTV monitoring" },
   { image: "/VoIP Sevices 2.jpeg", title: "VoIP desk phones" },
@@ -120,7 +120,7 @@ export default function Home() {
             {projects.map((project) => <figure className={project.className} key={project.title}><img src={project.image} alt={project.title} loading="lazy" /><figcaption><strong>{project.title}</strong><span>{project.meta}</span></figcaption></figure>)}
           </motion.div>
           <motion.div className="infra-gallery-strip" initial={{ opacity: 0, y: 34 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: .72, ease: [0.22, 1, 0.36, 1] }}>
-            {gallery.map((item) => <figure key={item.title}><img src={item.image} alt={item.title} loading="lazy" /><figcaption>{item.title}</figcaption></figure>)}
+            {gallery.map((item, index) => <figure key={item.title}><img src={item.image} alt={item.title} loading={index === 0 ? "eager" : "lazy"} /><figcaption>{item.title}</figcaption></figure>)}
           </motion.div>
         </div>
       </section>
