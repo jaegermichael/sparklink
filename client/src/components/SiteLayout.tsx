@@ -1,4 +1,4 @@
-import { ArrowUpRight, Menu, MessageCircle, X } from "lucide-react";
+import { ArrowUpRight, Facebook, Menu, MessageCircle, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -47,7 +47,7 @@ export default function SiteLayout({ children, variant = "default" }: { children
       </a>
       <footer className="atlas-footer">
         <div className="atlas-wrap">
-          <div className="atlas-footer-top"><div><img className="atlas-footer-logo" src="/logo.png" alt="SparkLink Technologies" /><p className="atlas-eyebrow"><span />SparkLink Technologies</p><h2>Let’s make your<br /><em>property work.</em></h2></div><div className="atlas-footer-details"><p>Connectivity, security, Wi-Fi and VoIP systems installed with care across Zimbabwe.</p><nav>{links.map((link) => <Link onClick={scrollToTop} key={link.href} href={link.href}>{link.label}</Link>)}</nav><a href="tel:+263773791578">+263 77 379 1578</a><a href="mailto:nicodimusmlambo@gmail.com">nicodimusmlambo@gmail.com</a></div><a className="atlas-button" href="https://wa.me/263773791578" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Message us</a></div>
+          <div className="atlas-footer-top"><div><img className="atlas-footer-logo" src="/logo.png" alt="SparkLink Technologies" /><p className="atlas-eyebrow"><span />SparkLink Technologies</p><h2>Let’s make your<br /><em>property work.</em></h2></div><div className="atlas-footer-details"><p>Connectivity, security, Wi-Fi and VoIP systems installed with care across Zimbabwe.</p><nav>{links.map((link) => <Link onClick={scrollToTop} key={link.href} href={link.href}>{link.label}</Link>)}</nav><a href="tel:+263773791578">+263 77 379 1578</a><a href="mailto:nicodimusmlambo@gmail.com">nicodimusmlambo@gmail.com</a><div className="atlas-socials"><a href="https://www.facebook.com/share/19KPkCSTtW/" target="_blank" rel="noreferrer" aria-label="Visit SparkLink on Facebook"><Facebook size={18} /></a></div></div><div className="atlas-footer-qr"><img src="/whatsapp-qr.png" alt="WhatsApp QR code for +263 77 379 1578" loading="lazy" /><span>Scan to WhatsApp<br />+263 77 379 1578</span></div><a className="atlas-button" href="https://wa.me/263773791578" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Message us</a></div>
           <div className="atlas-footer-bottom"><span>Harare, Zimbabwe</span><span>© {new Date().getFullYear()} SparkLink</span><span>Internet · Security · Wi-Fi · VoIP</span></div>
         </div>
       </footer>
