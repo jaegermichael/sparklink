@@ -1,4 +1,4 @@
-import { ArrowUpRight, Menu, MessageCircle, Satellite, X } from "lucide-react";
+import { ArrowUpRight, Menu, MessageCircle, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -32,7 +32,7 @@ export default function SiteLayout({ children, variant = "default" }: { children
   return (
     <div className={`atlas-site atlas-site-${variant}`}>
       <header className="atlas-header">
-        <Link href="/" className="atlas-logo"><span><Satellite size={16} /></span><b>Spark<em>Link</em></b><small>Technologies</small></Link>
+        <Link href="/" className="atlas-logo"><img src="/logo.png" alt="SparkLink Technologies" /></Link>
         <nav>{links.map((link) => <Link key={link.href} href={link.href} className={location === link.href ? "is-active" : ""}>{link.label}</Link>)}</nav>
         <a className="atlas-header-cta" href="https://wa.me/263773791578" target="_blank" rel="noreferrer">Let’s talk <ArrowUpRight size={15} /></a>
         <button className="atlas-menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Toggle menu">{open ? <X /> : <Menu />}</button>
@@ -45,7 +45,7 @@ export default function SiteLayout({ children, variant = "default" }: { children
       </a>
       <footer className="atlas-footer">
         <div className="atlas-wrap">
-          <div className="atlas-footer-top"><div><p className="atlas-eyebrow"><span />SparkLink Technologies</p><h2>Let’s make your<br /><em>property work.</em></h2></div><a className="atlas-button" href="https://wa.me/263773791578" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Message us</a></div>
+          <div className="atlas-footer-top"><div><img className="atlas-footer-logo" src="/logo.png" alt="SparkLink Technologies" /><p className="atlas-eyebrow"><span />SparkLink Technologies</p><h2>Let’s make your<br /><em>property work.</em></h2></div><a className="atlas-button" href="https://wa.me/263773791578" target="_blank" rel="noreferrer"><MessageCircle size={17} /> Message us</a></div>
           <div className="atlas-footer-bottom"><span>Harare, Zimbabwe</span><span>© {new Date().getFullYear()} SparkLink</span><span>Internet · Security · Wi-Fi</span></div>
         </div>
       </footer>
