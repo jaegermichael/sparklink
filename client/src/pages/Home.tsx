@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, Network, PhoneCall, Radio, Satellite, ShieldCheck, Wifi } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, Network, PhoneCall, Satellite, ShieldCheck, Wifi } from "lucide-react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "wouter";
@@ -49,8 +49,8 @@ export default function Home() {
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroCopyY = useTransform(heroProgress, [0, 1], [0, -82]);
   const heroVisualY = useTransform(heroProgress, [0, 1], [0, 118]);
-  const heroVisualScale = useTransform(heroProgress, [0, 1], [1, 1.08]);
-  const heroOpacity = useTransform(heroProgress, [0, .92], [1, .24]);
+  const heroOrbitRotate = useTransform(heroProgress, [0, 1], [0, 9]);
+  const heroRailY = useTransform(heroProgress, [0, 1], [0, 46]);
   const { scrollYProgress: proofProgress } = useScroll({ target: proofRef, offset: ["start end", "end start"] });
   const proofY = useTransform(proofProgress, [0, 1], [-28, 40]);
 
@@ -58,34 +58,37 @@ export default function Home() {
     <SiteLayout variant="showcase">
       <motion.div className="atlas-scroll-progress" style={{ scaleX: pageProgress }} aria-hidden="true" />
 
-      <section ref={heroRef} className="infra-hero">
-        <div className="infra-grid" aria-hidden="true" />
-        <div className="infra-glow infra-glow-one" aria-hidden="true" />
-        <div className="infra-glow infra-glow-two" aria-hidden="true" />
-        <motion.div className="infra-hero-media" style={reduceMotion ? undefined : { y: heroVisualY, scale: heroVisualScale, opacity: heroOpacity }}>
-          <img src="/hero-tech.png" alt="Connected property infrastructure with satellite, fibre and security systems" fetchPriority="high" />
-          <div className="infra-scan-line" aria-hidden="true" />
-        </motion.div>
-        <motion.div className="infra-hero-copy infra-shell" style={reduceMotion ? undefined : { y: heroCopyY }} initial="hidden" animate="visible" variants={reveal}>
-          <p className="infra-kicker"><Radio size={14} strokeWidth={1.5} /> Connected infrastructure · Harare</p>
-          <h1>Serious systems.<br /><em>Built to stay online.</em></h1>
-          <p className="infra-lede">We design and install Starlink, networks, CCTV and VoIP for properties that depend on reliable infrastructure.</p>
-          <div className="infra-actions">
+      <section ref={heroRef} className="spark-hero">
+        <div className="spark-hero-grid" aria-hidden="true" />
+        <div className="spark-hero-glow spark-hero-glow-one" aria-hidden="true" />
+        <div className="spark-hero-glow spark-hero-glow-two" aria-hidden="true" />
+        <motion.img className="spark-hero-tech" src="/hero-tech-still-life.png" alt="" aria-hidden="true" style={reduceMotion ? undefined : { y: heroVisualY }} />
+
+        <motion.div className="spark-hero-copy infra-shell" style={reduceMotion ? undefined : { y: heroCopyY }} initial="hidden" animate="visible" variants={reveal}>
+          <p className="spark-hero-tag"><span /> SparkLink Technologies</p>
+          <h1>Reliable internet.<br /><em>Real peace of mind.</em></h1>
+          <p className="spark-hero-lede">Starlink, Wi-Fi, CCTV and VoIP systems installed neatly for homes and businesses across Zimbabwe.</p>
+          <div className="infra-actions spark-hero-actions">
             <Link href="/contact" className="infra-button infra-button-primary">Request a site assessment <span><ArrowUpRight size={16} strokeWidth={1.5} /></span></Link>
             <a href="https://wa.me/263773791578" target="_blank" rel="noreferrer" className="infra-text-link">Talk on WhatsApp <ArrowRight size={15} /></a>
           </div>
         </motion.div>
-        <motion.aside className="infra-status" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: .55, duration: .7, ease: [0.22, 1, 0.36, 1] }}>
-          <span className="infra-live-dot" />
-          <div><small>Field network</small><strong>Systems online</strong></div>
-          <Network size={22} strokeWidth={1.35} />
-        </motion.aside>
-        <a className="infra-scroll-cue" href="#services"><span>Scroll to explore</span><ArrowDownRight size={17} /></a>
-        <div className="infra-hero-metrics">
-          <div><strong>5+</strong><span>Years in the field</span></div>
-          <div><strong>4</strong><span>Core system disciplines</span></div>
-          <div><strong>ZW</strong><span>Deployed across Zimbabwe</span></div>
-        </div>
+
+        <motion.div className="spark-hero-visual" style={reduceMotion ? undefined : { y: heroVisualY }}>
+          <motion.div className="spark-hero-orbit" style={reduceMotion ? undefined : { rotate: heroOrbitRotate }} aria-hidden="true"><i /><i /></motion.div>
+          <div className="spark-hero-disc" aria-hidden="true" />
+          <img src="/african woman.png" alt="SparkLink technology consultant holding a tablet" fetchPriority="high" />
+          <motion.aside className="spark-hero-card" initial={{ opacity: 0, y: 24, rotate: -2 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ delay: .55, duration: .74, ease: [0.22, 1, 0.36, 1] }}>
+            <span><Network size={16} strokeWidth={1.5} /></span>
+            <div><small>Site signal</small><strong>Connected</strong></div>
+          </motion.aside>
+        </motion.div>
+
+        <motion.div className="spark-hero-rail" style={reduceMotion ? undefined : { y: heroRailY }}>
+          <div><strong>5+</strong><span>Years of field work</span></div>
+          <div><strong>Harare</strong><span>Based in Zimbabwe</span></div>
+          <a href="#services"><span>Explore services</span><ArrowDownRight size={17} /></a>
+        </motion.div>
       </section>
 
       <section id="services" className="infra-services">
