@@ -11,6 +11,19 @@ const services = [
   { number: "04", label: "Business voice", title: "VoIP services", text: "Internet-based calling, office handsets and voice systems configured for clearer business communication.", image: "/VoIP Sevices.jpeg", icon: PhoneCall, className: "infra-service-compact" },
 ];
 
+
+const accessories = [
+  { image: "/accessory-ptz-wifi-camera.jpeg", title: "PTZ Wi-Fi cameras", price: "$100", meta: "Motion detection · Alarm integration" },
+  { image: "/accessory-tplink-omada-eap750.jpeg", title: "TP-Link Omada EAP750", price: "$150", meta: "Hotspot systems access point" },
+  { image: "/accessory-tplink-8-port-switch.jpeg", title: "8-port network switch", price: "$20", meta: "Compact wired network expansion" },
+  { image: "/accessory-starlink-gen3-cable-15m.jpeg", title: "Starlink Gen 3 cable", price: "$80", meta: "15m replacement cable" },
+  { image: "/accessory-flexible-conduit-pipe.jpeg", title: "Flexible conduit pipe", price: "$3", meta: "Per metre cable protection" },
+  { image: "/accessory-starlink-pole-mount.jpeg", title: "Starlink pole mount", price: "$15", meta: "Compatible with Gen 3 and Mini dish" },
+  { image: "/accessory-starlink-gen3-pole-adapter.jpeg", title: "Starlink Gen 3 pole adapter", price: "$70", meta: "Mounting adapter" },
+  { image: "/accessory-starlink-gen2-ethernet-adapter.jpeg", title: "Starlink Gen 2 ethernet adapter", price: "$50", meta: "Wired Starlink connection" },
+  { image: "/accessory-starlink-mini-v5-power-adapter.jpeg", title: "Starlink Mini V5 power adapter", price: "$50", meta: "Replacement power adapter" },
+];
+
 const process = [
   ["01", "Consultation", "We establish the outcome, site constraints and budget."],
   ["02", "Site assessment", "We inspect coverage, routes, power and equipment positions."],
@@ -107,6 +120,27 @@ export default function Home() {
             ))}
           </div>
           <p className="infra-swipe-hint">Swipe to explore services <ArrowRight size={15} /></p>
+
+          <motion.div className="infra-accessories" initial={{ opacity: 0, y: 38 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: .72, ease: [0.22, 1, 0.36, 1] }}>
+            <div className="infra-accessories-head">
+              <p className="infra-index">Accessories / Add-ons</p>
+              <h3>Hardware ready for cleaner installs.</h3>
+              <p>Starlink mounts, cables, adapters, access points and network accessories available with your installation.</p>
+            </div>
+            <div className="infra-accessory-grid">
+              {accessories.map((item, index) => (
+                <motion.article className="infra-accessory-card" key={item.title} whileHover={reduceMotion ? undefined : { y: -6, rotate: index % 2 === 0 ? -.35 : .35 }} whileTap={{ scale: .985 }}>
+                  <img src={item.image} alt={item.title} loading="lazy" />
+                  <div>
+                    <span>{item.price}</span>
+                    <h4>{item.title}</h4>
+                    <p>{item.meta}</p>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+            <p className="infra-swipe-hint infra-accessory-swipe">Swipe accessories <ArrowRight size={15} /></p>
+          </motion.div>
         </div>
       </section>
 
