@@ -1,6 +1,6 @@
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, Network, PhoneCall, Satellite, ShieldCheck, Wifi } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Check, Minus, Network, PhoneCall, Plus, Satellite, ShieldCheck, ShoppingCart, Trash2, Wifi } from "lucide-react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import SiteLayout from "@/components/SiteLayout";
 
@@ -13,15 +13,15 @@ const services = [
 
 
 const accessories = [
-  { image: "/accessory-ptz-wifi-camera.jpeg", title: "PTZ Wi-Fi cameras", price: "$100", meta: "Motion detection � Alarm integration" },
-  { image: "/accessory-tplink-omada-eap750.jpeg", title: "TP-Link Omada EAP750", price: "$150", meta: "Hotspot systems access point" },
-  { image: "/accessory-tplink-8-port-switch.jpeg", title: "8-port network switch", price: "$20", meta: "Compact wired network expansion" },
-  { image: "/accessory-starlink-gen3-cable-15m.jpeg", title: "Starlink Gen 3 cable", price: "$80", meta: "15m replacement cable" },
-  { image: "/accessory-flexible-conduit-pipe.jpeg", title: "Flexible conduit pipe", price: "$3", meta: "Per metre cable protection" },
-  { image: "/accessory-starlink-pole-mount.jpeg", title: "Starlink pole mount", price: "$15", meta: "Compatible with Gen 3 and Mini dish" },
-  { image: "/accessory-starlink-gen3-pole-adapter.jpeg", title: "Starlink Gen 3 pole adapter", price: "$70", meta: "Mounting adapter" },
-  { image: "/accessory-starlink-gen2-ethernet-adapter.jpeg", title: "Starlink Gen 2 ethernet adapter", price: "$50", meta: "Wired Starlink connection" },
-  { image: "/accessory-starlink-mini-v5-power-adapter.jpeg", title: "Starlink Mini V5 power adapter", price: "$50", meta: "Replacement power adapter" },
+  { image: "/accessory-ptz-wifi-camera.jpeg", title: "PTZ Wi-Fi cameras", price: "$100", amount: 100, meta: "Motion detection · Alarm integration" },
+  { image: "/accessory-tplink-omada-eap750.jpeg", title: "TP-Link Omada EAP750", price: "$150", amount: 150, meta: "Hotspot systems access point" },
+  { image: "/accessory-tplink-8-port-switch.jpeg", title: "8-port network switch", price: "$20", amount: 20, meta: "Compact wired network expansion" },
+  { image: "/accessory-starlink-gen3-cable-15m.jpeg", title: "Starlink Gen 3 cable", price: "$80", amount: 80, meta: "15m replacement cable" },
+  { image: "/accessory-flexible-conduit-pipe.jpeg", title: "Flexible conduit pipe", price: "$3", amount: 3, meta: "Per metre cable protection" },
+  { image: "/accessory-starlink-pole-mount.jpeg", title: "Starlink pole mount", price: "$15", amount: 15, meta: "Compatible with Gen 3 and Mini dish" },
+  { image: "/accessory-starlink-gen3-pole-adapter.jpeg", title: "Starlink Gen 3 pole adapter", price: "$70", amount: 70, meta: "Mounting adapter" },
+  { image: "/accessory-starlink-gen2-ethernet-adapter.jpeg", title: "Starlink Gen 2 ethernet adapter", price: "$50", amount: 50, meta: "Wired Starlink connection" },
+  { image: "/accessory-starlink-mini-v5-power-adapter.jpeg", title: "Starlink Mini V5 power adapter", price: "$50", amount: 50, meta: "Replacement power adapter" },
 ];
 
 const process = [
@@ -66,6 +66,24 @@ export default function Home() {
   const heroRailY = useTransform(heroProgress, [0, 1], [0, 46]);
   const { scrollYProgress: proofProgress } = useScroll({ target: proofRef, offset: ["start end", "end start"] });
   const proofY = useTransform(proofProgress, [0, 1], [-28, 40]);
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const cartItems = useMemo(() => accessories.filter((item) => cart[item.title]).map((item) => ({ ...item, quantity: cart[item.title] })), [cart]);
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = cartItems.reduce((total, item) => total + item.amount * item.quantity, 0);
+  const orderMessage = encodeURIComponent(`Hi SparkLink, I would like to order:\n\n${cartItems.map((item) => `- ${item.quantity} x ${item.title} (${item.price} each)`).join("\n")}\n\nEstimated total: $${cartTotal}\n\nPlease confirm availability and delivery/installation details.`);
+  const orderUrl = `https://wa.me/263773791578?text=${orderMessage}`;
+  const updateCart = (title: string, change: number) => setCart((current) => {
+    const nextQuantity = Math.max((current[title] ?? 0) + change, 0);
+    const next = { ...current };
+    if (nextQuantity === 0) delete next[title];
+    else next[title] = nextQuantity;
+    return next;
+  });
+  const removeFromCart = (title: string) => setCart((current) => {
+    const next = { ...current };
+    delete next[title];
+    return next;
+  });
 
   return (
     <SiteLayout variant="showcase">
@@ -135,11 +153,40 @@ export default function Home() {
                     <span>{item.price}</span>
                     <h4>{item.title}</h4>
                     <p>{item.meta}</p>
+                    <button type="button" onClick={() => updateCart(item.title, 1)} aria-label={`Add ${item.title} to order`}>
+                      <ShoppingCart size={15} strokeWidth={1.6} /> Order
+                    </button>
                   </div>
                 </motion.article>
               ))}
             </div>
             <p className="infra-swipe-hint infra-accessory-swipe">Swipe accessories <ArrowRight size={15} /></p>
+            <motion.aside className="infra-order-cart" initial={{ opacity: 0, y: 24 }} animate={{ opacity: cartCount ? 1 : .86, y: 0 }} transition={{ duration: .45, ease: [0.22, 1, 0.36, 1] }}>
+              <div className="infra-order-cart-head">
+                <span><ShoppingCart size={17} strokeWidth={1.6} /></span>
+                <div><small>Accessory order</small><strong>{cartCount ? `${cartCount} item${cartCount === 1 ? "" : "s"}` : "Cart is empty"}</strong></div>
+                <b>${cartTotal}</b>
+              </div>
+              {cartItems.length > 0 ? (
+                <>
+                  <div className="infra-order-cart-list">
+                    {cartItems.map((item) => (
+                      <div className="infra-order-line" key={item.title}>
+                        <img src={item.image} alt="" aria-hidden="true" />
+                        <p><strong>{item.title}</strong><span>{item.price} each</span></p>
+                        <div className="infra-order-qty" aria-label={`${item.title} quantity`}>
+                          <button type="button" onClick={() => updateCart(item.title, -1)} aria-label={`Remove one ${item.title}`}><Minus size={13} /></button>
+                          <span>{item.quantity}</span>
+                          <button type="button" onClick={() => updateCart(item.title, 1)} aria-label={`Add one ${item.title}`}><Plus size={13} /></button>
+                        </div>
+                        <button type="button" className="infra-order-remove" onClick={() => removeFromCart(item.title)} aria-label={`Remove ${item.title} from order`}><Trash2 size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                  <a className="infra-order-submit" href={orderUrl} target="_blank" rel="noreferrer">Send order on WhatsApp <ArrowUpRight size={16} strokeWidth={1.6} /></a>
+                </>
+              ) : <p className="infra-order-empty">Choose accessories above and we’ll prepare a WhatsApp order message for you.</p>}
+            </motion.aside>
           </motion.div>
         </div>
       </section>
@@ -196,3 +243,4 @@ export default function Home() {
     </SiteLayout>
   );
 }
+
